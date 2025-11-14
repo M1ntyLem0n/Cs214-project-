@@ -306,6 +306,72 @@ void printToOutputFile(ToDoData& data, const string& filename = "output.txt") {
     cout << "✓ Output written to '" << filename << "'.\n";
 }
 
+//========================
+// print task in order of priority.
+void printByPriority(ToDoData& data) {
+    if (data.head == NULL) {
+        cout << "no tasks available\n";
+        return;
+    }
+
+    cout << "\n=== Tasks Sorted by Priority ===\n";
+    for (int pr = 1; pr <= 5; pr++) {  // highest priority (1) is at first
+        Node* cur = data.head;
+        while (cur != NULL) { // stops at last, when cur->next is actually null
+            if (cur->priority == pr) {
+                cout << (cur->completed ? "[✓] " : "[ ] ")
+                     << "[ID:" << cur->id << "] "
+                     << cur->description
+                     << " (P:" << cur->priority << ")\n";
+            }
+            cur = cur->next;
+        }
+    }
+    cout << "===============================\n";
+}
+
+//=======================
+// clear any completed task.
+void deleteAllCompleted(ToDoData& data) {
+    if (data.head == NULL) {
+        cout << "No tasks available.\n";
+        return;
+    }
+
+    Node* cur = data.head;
+    Node* temp = NULL;
+
+    while (cur) {
+        if (cur->completed) {
+            // remove from list
+            Node* toDelete = cur;
+
+            if (temp == NULL) {
+                data.head = cur->next;  // prevent data loss, if we delete first noed, then we will lose all other next nodes to it
+            } else {
+                temp->next = cur->next; // prevent data loss if we delete a middle node, "ex:   if we delete 'B' (A->B->C)"  we need to connect node A with C
+            }
+
+            // push copy into deletedStack to undo later
+            Node* copyNode = new Node{toDelete->id, toDelete->description, toDelete->priority, toDelete->completed, nullptr};
+            data.deletedStack.push(copyNode);
+
+            // remove from map
+            data.taskMap.erase(toDelete->id);
+
+            cur = cur->next;
+            delete toDelete;
+            data.totalTasks--;
+        }
+        else {
+            temp = cur;
+            cur = cur->next;
+        }
+    }
+
+}
+
+
 // ================================
 // Simple menu display
 // ================================
@@ -319,7 +385,9 @@ void showMenu() {
     cout << "6. Mark Incomplete\n";
     cout << "7. Search Task by ID\n";
     cout << "8. Show All Tasks\n";
-    cout << "9. Save & Exit (also write output.txt)\n";
+    cout << "9. Show tasks in order of priority\n";
+    cout << "10. clear completed tasks\n";
+    cout << "11. Save & Exit (also write output.txt)\n";
     cout << "====================================\n";
     cout << "Choose: ";
 }
@@ -390,13 +458,20 @@ int main() {
             printAll(data);
         }
         else if (choice == 9) {
+            printByPriority(data);
+        }
+        else if (choice == 10) {
+            deleteAllCompleted(data);
+        }    
+            
+        else if (choice == 11) {
             saveToFile(data, "tasks.txt");
             printToOutputFile(data, "output.txt");
             cout << "Goodbye!\n";
             break;
         }
         else {
-            cout << "Invalid choice. Enter 1..9.\n";
+            cout << "Invalid choice. Enter from 1 to 11.\n";
         }
     }
 
@@ -404,3 +479,4 @@ int main() {
     freeAll(data);
     return 0;
 }
+
