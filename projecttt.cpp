@@ -339,36 +339,16 @@ void deleteAllCompleted(ToDoData& data) {
     }
 
     Node* cur = data.head;
-    Node* temp = NULL;
 
     while (cur) {
+        Node* nextNode = cur->next;
+
         if (cur->completed) {
-            // remove from list
-            Node* toDelete = cur;
-
-            if (temp == NULL) {
-                data.head = cur->next;  // prevent data loss, if we delete first noed, then we will lose all other next nodes to it
-            } else {
-                temp->next = cur->next; // prevent data loss if we delete a middle node, "ex:   if we delete 'B' (A->B->C)"  we need to connect node A with C
-            }
-
-            // push copy into deletedStack to undo later
-            Node* copyNode = new Node{toDelete->id, toDelete->description, toDelete->priority, toDelete->completed, nullptr};
-            data.deletedStack.push(copyNode);
-
-            // remove from map
-            data.taskMap.erase(toDelete->id);
-
-            cur = cur->next;
-            delete toDelete;
-            data.totalTasks--;
+            deleteTask(data, cur->id);
         }
-        else {
-            temp = cur;
-            cur = cur->next;
-        }
+
+        cur = nextNode;
     }
-
 }
 
 
@@ -479,4 +459,5 @@ int main() {
     freeAll(data);
     return 0;
 }
+
 
